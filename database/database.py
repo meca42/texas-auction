@@ -13,6 +13,13 @@ from datetime import datetime
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 import time
+import psycopg2
+from psycopg2.extras import DictCursor
+from dotenv import load_dotenv
+from urllib.parse import urlparse
+
+# Load environment variables
+load_dotenv()
 
 # Configure logging
 logging.basicConfig(
@@ -29,39 +36,53 @@ logger = logging.getLogger("database")
 class AuctionDatabase:
     """Class to handle database operations for the Texas Auction Database"""
     
-    def __init__(self, db_path=None):
+    def __init__(self, db_url=None):
         """
         Initialize the database
         
         Args:
-            db_path (str, optional): Path to the database file. Defaults to None.
+            db_url (str, optional): Database URL. Defaults to None (uses DATABASE_URL env var).
         """
-        if db_path is None:
-            # Use default path in project directory
-            project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            db_path = os.path.join(project_dir, "database", "texas_auctions.db")
+        if db_url is None:
+            # Use environment variable
+            db_url = os.getenv('DATABASE_URL')
+            
+            # If no environment variable, use default SQLite path
+            if not db_url:
+                project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                db_path = os.path.join(project_dir, "database", "texas_auctions.db")
+                db_url = f"sqlite:///{db_path}"
+                
+                # Ensure directory exists for SQLite
+                os.makedirs(os.path.dirname(db_path), exist_ok=True)
         
-        # Ensure directory exists
-        os.makedirs(os.path.dirname(db_path), exist_ok=True)
-        
-        self.db_path = db_path
+        self.db_url = db_url
         self.conn = None
+        self.db_type = 'sqlite' if db_url.startswith('sqlite') else 'postgresql'
         self.geocoder = Nominatim(user_agent="texas_auction_database")
-        logger.info(f"Database initialized at {db_path}")
+        logger.info(f"Database initialized with {self.db_type} at {db_url}")
     
     def connect(self):
         """
         Connect to the database
         
         Returns:
-            sqlite3.Connection: Database connection
+            Connection: Database connection
         """
         try:
-            self.conn = sqlite3.connect(self.db_path)
-            self.conn.row_factory = sqlite3.Row  # Return rows as dictionaries
-            logger.info("Connected to database")
+            if self.db_type == 'sqlite':
+                # Extract path from sqlite:/// URL format
+                db_path = self.db_url.replace('sqlite:///', '')
+                self.conn = sqlite3.connect(db_path)
+                self.conn.row_factory = sqlite3.Row  # Return rows as dictionaries
+            else:
+                # Connect to PostgreSQL
+                self.conn = psycopg2.connect(self.db_url)
+                self.conn.cursor_factory = DictCursor  # Return rows as dictionaries
+                
+            logger.info(f"Connected to {self.db_type} database")
             return self.conn
-        except sqlite3.Error as e:
+        except (sqlite3.Error, psycopg2.Error) as e:
             logger.error(f"Error connecting to database: {e}")
             raise
     
@@ -86,7 +107,7 @@ class AuctionDatabase:
             # Create auction_sources table
             cursor.execute('''
             CREATE TABLE IF NOT EXISTS auction_sources (
-                source_id INTEGER PRIMARY KEY,
+                source_id SERIAL PRIMARY KEY,
                 name TEXT NOT NULL,
                 website_url TEXT NOT NULL,
                 description TEXT,
@@ -100,7 +121,7 @@ class AuctionDatabase:
             # Create locations table
             cursor.execute('''
             CREATE TABLE IF NOT EXISTS locations (
-                location_id INTEGER PRIMARY KEY,
+                location_id SERIAL PRIMARY KEY,
                 address TEXT,
                 city TEXT NOT NULL,
                 state TEXT NOT NULL DEFAULT 'TX',
@@ -115,7 +136,7 @@ class AuctionDatabase:
             # Create auction_categories table
             cursor.execute('''
             CREATE TABLE IF NOT EXISTS auction_categories (
-                category_id INTEGER PRIMARY KEY,
+                category_id SERIAL PRIMARY KEY,
                 name TEXT NOT NULL,
                 description TEXT,
                 parent_category_id INTEGER,
@@ -128,7 +149,7 @@ class AuctionDatabase:
             # Create auctions table
             cursor.execute('''
             CREATE TABLE IF NOT EXISTS auctions (
-                auction_id INTEGER PRIMARY KEY,
+                auction_id SERIAL PRIMARY KEY,
                 source_id INTEGER NOT NULL,
                 external_id TEXT,
                 title TEXT NOT NULL,
@@ -152,7 +173,7 @@ class AuctionDatabase:
             # Create auction_images table
             cursor.execute('''
             CREATE TABLE IF NOT EXISTS auction_images (
-                image_id INTEGER PRIMARY KEY,
+                image_id SERIAL PRIMARY KEY,
                 auction_id INTEGER NOT NULL,
                 image_url TEXT NOT NULL,
                 is_primary BOOLEAN DEFAULT FALSE,
@@ -164,7 +185,7 @@ class AuctionDatabase:
             # Create auction_details table
             cursor.execute('''
             CREATE TABLE IF NOT EXISTS auction_details (
-                detail_id INTEGER PRIMARY KEY,
+                detail_id SERIAL PRIMARY KEY,
                 auction_id INTEGER NOT NULL,
                 key TEXT NOT NULL,
                 value TEXT NOT NULL,
@@ -176,7 +197,7 @@ class AuctionDatabase:
             # Create user_preferences table
             cursor.execute('''
             CREATE TABLE IF NOT EXISTS user_preferences (
-                preference_id INTEGER PRIMARY KEY,
+                preference_id SERIAL PRIMARY KEY,
                 user_zip_code TEXT NOT NULL,
                 max_distance INTEGER DEFAULT 100,
                 preferred_categories TEXT,
@@ -194,15 +215,11 @@ class AuctionDatabase:
             cursor.execute('CREATE INDEX IF NOT EXISTS idx_auctions_status ON auctions(status)')
             cursor.execute('CREATE INDEX IF NOT EXISTS idx_auctions_status_end_date ON auctions(status, end_date)')
             
-            # Note: SQLite doesn't support stored functions like PostgreSQL
-            # We'll implement the distance calculation in Python instead
-            logger.info("SQLite doesn't support stored functions, will calculate distances in Python")
-            
             conn.commit()
             logger.info("Database tables created successfully")
             return True
             
-        except sqlite3.Error as e:
+        except (sqlite3.Error, psycopg2.Error) as e:
             logger.error(f"Error creating database tables: {e}")
             if conn:
                 conn.rollback()
@@ -248,180 +265,15 @@ class AuctionDatabase:
                 return None, None
                 
         except (GeocoderTimedOut, GeocoderServiceError) as e:
-            logger.error(f"Geocoding error for {location}: {e}")
+            logger.error(f"Geocoding error: {e}")
             return None, None
     
-    def import_data(self, json_file):
+    def get_auctions_by_end_date(self, limit=20, offset=0):
         """
-        Import auction data from a JSON file
+        Get auctions sorted by end date
         
         Args:
-            json_file (str): Path to the JSON file
-            
-        Returns:
-            int: Number of auctions imported
-        """
-        try:
-            # Load the JSON data
-            with open(json_file, 'r') as f:
-                data = json.load(f)
-            
-            auctions = data.get("auctions", [])
-            logger.info(f"Importing {len(auctions)} auctions from {json_file}")
-            
-            conn = self.connect()
-            cursor = conn.cursor()
-            
-            # Insert default categories if they don't exist
-            categories = {
-                "vehicles": "Vehicles including cars, trucks, motorcycles, and other automotive items",
-                "equipment": "Heavy equipment, machinery, and tools",
-                "electronics": "Computers, phones, and other electronic devices",
-                "furniture": "Office and home furniture",
-                "real_estate": "Land, buildings, and property",
-                "jewelry": "Jewelry, watches, and precious metals",
-                "other": "Miscellaneous items"
-            }
-            
-            category_ids = {}
-            for name, description in categories.items():
-                cursor.execute(
-                    "INSERT OR IGNORE INTO auction_categories (name, description) VALUES (?, ?)",
-                    (name, description)
-                )
-                cursor.execute("SELECT category_id FROM auction_categories WHERE name = ?", (name,))
-                category_ids[name] = cursor.fetchone()[0]
-            
-            # Insert auction sources if they don't exist
-            sources = {
-                "public_surplus": {
-                    "name": "Public Surplus - Texas Facilities Commission",
-                    "website_url": "https://www.publicsurplus.com/sms/state,tx/list/current?orgid=871876",
-                    "description": "Government surplus auctions from Texas Facilities Commission",
-                    "is_government": True
-                },
-                "gaston_sheehan": {
-                    "name": "Gaston and Sheehan Auctioneers",
-                    "website_url": "https://www.txauction.com/",
-                    "description": "Private auction house specializing in government and private auctions in Texas",
-                    "is_government": False
-                },
-                "govdeals": {
-                    "name": "GovDeals - Texas",
-                    "website_url": "https://www.govdeals.com/texas",
-                    "description": "Government surplus auctions from various Texas agencies",
-                    "is_government": True
-                }
-            }
-            
-            source_ids = {}
-            for source_key, source_data in sources.items():
-                cursor.execute(
-                    "INSERT OR IGNORE INTO auction_sources (name, website_url, description, is_government) VALUES (?, ?, ?, ?)",
-                    (source_data["name"], source_data["website_url"], source_data["description"], source_data["is_government"])
-                )
-                cursor.execute("SELECT source_id FROM auction_sources WHERE name = ?", (source_data["name"],))
-                source_ids[source_key] = cursor.fetchone()[0]
-            
-            # Process each auction
-            imported_count = 0
-            for auction in auctions:
-                try:
-                    # Get or create location
-                    location_id = None
-                    if auction.get("location"):
-                        location = auction["location"]
-                        
-                        # Geocode the location if needed
-                        if not location.get("latitude") or not location.get("longitude"):
-                            latitude, longitude = self.geocode_location(location)
-                            if latitude and longitude:
-                                location["latitude"] = latitude
-                                location["longitude"] = longitude
-                        
-                        # Insert location
-                        cursor.execute(
-                            "INSERT INTO locations (city, state, zip_code, latitude, longitude) VALUES (?, ?, ?, ?, ?)",
-                            (
-                                location.get("city"),
-                                location.get("state", "TX"),
-                                location.get("zip_code"),
-                                location.get("latitude"),
-                                location.get("longitude")
-                            )
-                        )
-                        location_id = cursor.lastrowid
-                    
-                    # Get category ID
-                    category = auction.get("category", "other")
-                    category_id = category_ids.get(category, category_ids["other"])
-                    
-                    # Get source ID
-                    source = auction.get("source_id", "other")
-                    source_id = source_ids.get(source, 1)  # Default to first source if not found
-                    
-                    # Insert auction
-                    cursor.execute(
-                        """
-                        INSERT INTO auctions 
-                        (source_id, external_id, title, description, start_date, end_date, 
-                        current_price, location_id, category_id, url, status)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                        """,
-                        (
-                            source_id,
-                            auction.get("external_id"),
-                            auction.get("title"),
-                            auction.get("description"),
-                            auction.get("start_date"),
-                            auction.get("end_date"),
-                            auction.get("current_price"),
-                            location_id,
-                            category_id,
-                            auction.get("url"),
-                            "active"
-                        )
-                    )
-                    auction_id = cursor.lastrowid
-                    
-                    # Insert images
-                    for image_url in auction.get("images", []):
-                        if image_url:
-                            cursor.execute(
-                                "INSERT INTO auction_images (auction_id, image_url) VALUES (?, ?)",
-                                (auction_id, image_url)
-                            )
-                    
-                    imported_count += 1
-                    
-                except Exception as e:
-                    logger.error(f"Error importing auction {auction.get('title')}: {e}")
-                    continue
-            
-            # Set default user preferences for ZIP code 78232
-            cursor.execute(
-                "INSERT OR IGNORE INTO user_preferences (user_zip_code, max_distance) VALUES (?, ?)",
-                ("78232", 100)
-            )
-            
-            conn.commit()
-            logger.info(f"Successfully imported {imported_count} auctions")
-            return imported_count
-            
-        except Exception as e:
-            logger.error(f"Error importing data from {json_file}: {e}")
-            if conn:
-                conn.rollback()
-            return 0
-        finally:
-            self.close()
-    
-    def get_auctions_by_end_date(self, limit=100, offset=0):
-        """
-        Get auctions sorted by end date (soonest first)
-        
-        Args:
-            limit (int, optional): Maximum number of auctions to return. Defaults to 100.
+            limit (int, optional): Number of auctions to return. Defaults to 20.
             offset (int, optional): Offset for pagination. Defaults to 0.
             
         Returns:
@@ -431,69 +283,63 @@ class AuctionDatabase:
             conn = self.connect()
             cursor = conn.cursor()
             
-            cursor.execute(
-                """
-                SELECT a.*, s.name as source_name, c.name as category_name,
-                       l.city, l.state, l.zip_code, l.latitude, l.longitude
-                FROM auctions a
-                LEFT JOIN auction_sources s ON a.source_id = s.source_id
-                LEFT JOIN auction_categories c ON a.category_id = c.category_id
-                LEFT JOIN locations l ON a.location_id = l.location_id
-                WHERE a.status = 'active'
-                ORDER BY a.end_date ASC
-                LIMIT ? OFFSET ?
-                """,
-                (limit, offset)
-            )
+            query = """
+            SELECT a.*, s.name as source_name, c.name as category_name,
+                   l.city, l.state, l.zip_code
+            FROM auctions a
+            LEFT JOIN auction_sources s ON a.source_id = s.source_id
+            LEFT JOIN auction_categories c ON a.category_id = c.category_id
+            LEFT JOIN locations l ON a.location_id = l.location_id
+            WHERE a.status = 'active' AND a.end_date > CURRENT_TIMESTAMP
+            ORDER BY a.end_date ASC
+            LIMIT ? OFFSET ?
+            """
             
-            auctions = []
-            for row in cursor.fetchall():
-                auction = dict(row)
+            # PostgreSQL uses different parameter placeholders
+            if self.db_type == 'postgresql':
+                query = query.replace('?', '%s')
                 
-                # Get images
-                cursor.execute(
-                    "SELECT image_url FROM auction_images WHERE auction_id = ?",
-                    (auction["auction_id"],)
-                )
-                auction["images"] = [row["image_url"] for row in cursor.fetchall()]
-                
-                auctions.append(auction)
+            cursor.execute(query, (limit, offset))
             
-            logger.info(f"Retrieved {len(auctions)} auctions sorted by end date")
+            if self.db_type == 'sqlite':
+                auctions = [dict(row) for row in cursor.fetchall()]
+            else:
+                auctions = [dict(row) for row in cursor.fetchall()]
+                
             return auctions
             
-        except sqlite3.Error as e:
+        except (sqlite3.Error, psycopg2.Error) as e:
             logger.error(f"Error getting auctions by end date: {e}")
             return []
         finally:
             self.close()
     
-    def get_auctions_by_proximity(self, zip_code="78232", max_distance=100, limit=100, offset=0):
+    def get_auctions_by_proximity(self, zip_code, max_distance=100, limit=20, offset=0):
         """
         Get auctions sorted by proximity to ZIP code
         
         Args:
-            zip_code (str, optional): ZIP code to search from. Defaults to "78232".
+            zip_code (str): ZIP code to search near
             max_distance (int, optional): Maximum distance in miles. Defaults to 100.
-            limit (int, optional): Maximum number of auctions to return. Defaults to 100.
+            limit (int, optional): Number of auctions to return. Defaults to 20.
             offset (int, optional): Offset for pagination. Defaults to 0.
             
         Returns:
-            list: List of auction dictionaries with distance
+            list: List of auction dictionaries
         """
         try:
             # First, geocode the ZIP code
-            zip_location = {"zip_code": zip_code, "state": "TX"}
-            zip_lat, zip_lon = self.geocode_location(zip_location)
+            location = {"zip_code": zip_code}
+            user_lat, user_lon = self.geocode_location(location)
             
-            if not zip_lat or not zip_lon:
-                logger.error(f"Could not geocode ZIP code: {zip_code}")
+            if not user_lat or not user_lon:
+                logger.warning(f"Could not geocode ZIP code: {zip_code}")
                 return []
             
             conn = self.connect()
             cursor = conn.cursor()
             
-            # SQLite doesn't have built-in geospatial functions, so we'll calculate distance in Python
+            # Get all auctions with locations
             cursor.execute(
                 """
                 SELECT a.*, s.name as source_name, c.name as category_name,
@@ -502,61 +348,326 @@ class AuctionDatabase:
                 LEFT JOIN auction_sources s ON a.source_id = s.source_id
                 LEFT JOIN auction_categories c ON a.category_id = c.category_id
                 LEFT JOIN locations l ON a.location_id = l.location_id
-                WHERE a.status = 'active' AND l.latitude IS NOT NULL AND l.longitude IS NOT NULL
+                WHERE a.status = 'active' AND a.end_date > CURRENT_TIMESTAMP
+                  AND l.latitude IS NOT NULL AND l.longitude IS NOT NULL
                 """
             )
             
-            auctions = []
-            for row in cursor.fetchall():
-                auction = dict(row)
-                
-                # Calculate distance
-                if auction["latitude"] and auction["longitude"]:
-                    # Use Haversine formula to calculate distance
-                    from math import radians, cos, sin, asin, sqrt
-                    
-                    def haversine(lat1, lon1, lat2, lon2):
-                        # Convert decimal degrees to radians
-                        lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
-                        
-                        # Haversine formula
-                        dlon = lon2 - lon1
-                        dlat = lat2 - lat1
-                        a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
-                        c = 2 * asin(sqrt(a))
-                        r = 3958.8  # Radius of earth in miles
-                        return c * r
-                    
-                    distance = haversine(zip_lat, zip_lon, auction["latitude"], auction["longitude"])
-                    auction["distance"] = round(distance, 2)
-                    
-                    # Only include auctions within max_distance
-                    if distance <= max_distance:
-                        # Get images
-                        cursor.execute(
-                            "SELECT image_url FROM auction_images WHERE auction_id = ?",
-                            (auction["auction_id"],)
-                        )
-                        auction["images"] = [row["image_url"] for row in cursor.fetchall()]
-                        
-                        auctions.append(auction)
+            if self.db_type == 'sqlite':
+                auctions = [dict(row) for row in cursor.fetchall()]
+            else:
+                auctions = [dict(row) for row in cursor.fetchall()]
             
-            # Sort by distance and apply limit/offset
-            auctions.sort(key=lambda x: x.get("distance", float('inf')))
+            # Calculate distance for each auction
+            for auction in auctions:
+                auction_lat = auction.get("latitude")
+                auction_lon = auction.get("longitude")
+                
+                if auction_lat and auction_lon:
+                    # Calculate distance using Haversine formula
+                    distance = self._calculate_distance(
+                        user_lat, user_lon, auction_lat, auction_lon
+                    )
+                    auction["distance"] = distance
+                else:
+                    auction["distance"] = float('inf')
+            
+            # Filter by max distance
+            auctions = [a for a in auctions if a["distance"] <= max_distance]
+            
+            # Sort by distance
+            auctions.sort(key=lambda x: x["distance"])
+            
+            # Apply pagination
             paginated_auctions = auctions[offset:offset+limit]
             
-            logger.info(f"Retrieved {len(paginated_auctions)} auctions sorted by proximity to {zip_code}")
             return paginated_auctions
             
-        except Exception as e:
+        except (sqlite3.Error, psycopg2.Error) as e:
             logger.error(f"Error getting auctions by proximity: {e}")
             return []
         finally:
             self.close()
-
-
-if __name__ == "__main__":
-    # Create and initialize the database if this file is executed directly
-    db = AuctionDatabase()
-    db.create_tables()
-    print("Database created successfully")
+    
+    def _calculate_distance(self, lat1, lon1, lat2, lon2):
+        """
+        Calculate distance between two points using Haversine formula
+        
+        Args:
+            lat1 (float): Latitude of point 1
+            lon1 (float): Longitude of point 1
+            lat2 (float): Latitude of point 2
+            lon2 (float): Longitude of point 2
+            
+        Returns:
+            float: Distance in miles
+        """
+        from math import radians, cos, sin, asin, sqrt
+        
+        # Convert decimal degrees to radians
+        lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+        
+        # Haversine formula
+        dlon = lon2 - lon1
+        dlat = lat2 - lat1
+        a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+        c = 2 * asin(sqrt(a))
+        r = 3956  # Radius of earth in miles
+        
+        return c * r
+    
+    def import_data(self, data_file):
+        """
+        Import data from JSON file into database
+        
+        Args:
+            data_file (str): Path to JSON data file
+            
+        Returns:
+            int: Number of auctions imported
+        """
+        try:
+            # Load data from file
+            with open(data_file, 'r') as f:
+                data = json.load(f)
+            
+            conn = self.connect()
+            cursor = conn.cursor()
+            
+            # Import auction sources
+            for source in data.get("sources", []):
+                # Check if source already exists
+                cursor.execute(
+                    "SELECT source_id FROM auction_sources WHERE name = ?",
+                    (source["name"],)
+                )
+                result = cursor.fetchone()
+                
+                if result:
+                    source_id = result[0]
+                else:
+                    # Insert new source
+                    cursor.execute(
+                        """
+                        INSERT INTO auction_sources (name, website_url, description, logo_url, is_government)
+                        VALUES (?, ?, ?, ?, ?)
+                        """,
+                        (
+                            source["name"],
+                            source["website_url"],
+                            source.get("description", ""),
+                            source.get("logo_url", ""),
+                            source.get("is_government", False)
+                        )
+                    )
+                    
+                    if self.db_type == 'sqlite':
+                        source_id = cursor.lastrowid
+                    else:
+                        cursor.execute("SELECT lastval()")
+                        source_id = cursor.fetchone()[0]
+                
+                source["source_id"] = source_id
+            
+            # Import categories
+            for category in data.get("categories", []):
+                # Check if category already exists
+                cursor.execute(
+                    "SELECT category_id FROM auction_categories WHERE name = ?",
+                    (category["name"],)
+                )
+                result = cursor.fetchone()
+                
+                if result:
+                    category_id = result[0]
+                else:
+                    # Insert new category
+                    cursor.execute(
+                        """
+                        INSERT INTO auction_categories (name, description, parent_category_id)
+                        VALUES (?, ?, ?)
+                        """,
+                        (
+                            category["name"],
+                            category.get("description", ""),
+                            category.get("parent_category_id")
+                        )
+                    )
+                    
+                    if self.db_type == 'sqlite':
+                        category_id = cursor.lastrowid
+                    else:
+                        cursor.execute("SELECT lastval()")
+                        category_id = cursor.fetchone()[0]
+                
+                category["category_id"] = category_id
+            
+            # Import auctions
+            imported_count = 0
+            for auction in data.get("auctions", []):
+                # Get or create location
+                location_id = None
+                if "location" in auction:
+                    location = auction["location"]
+                    
+                    # Geocode location if needed
+                    if "latitude" not in location or "longitude" not in location:
+                        lat, lon = self.geocode_location(location)
+                        if lat and lon:
+                            location["latitude"] = lat
+                            location["longitude"] = lon
+                    
+                    # Check if location already exists
+                    cursor.execute(
+                        """
+                        SELECT location_id FROM locations
+                        WHERE city = ? AND state = ? AND zip_code = ?
+                        """,
+                        (
+                            location.get("city", ""),
+                            location.get("state", "TX"),
+                            location.get("zip_code", "")
+                        )
+                    )
+                    result = cursor.fetchone()
+                    
+                    if result:
+                        location_id = result[0]
+                    else:
+                        # Insert new location
+                        cursor.execute(
+                            """
+                            INSERT INTO locations (address, city, state, zip_code, latitude, longitude)
+                            VALUES (?, ?, ?, ?, ?, ?)
+                            """,
+                            (
+                                location.get("address", ""),
+                                location.get("city", ""),
+                                location.get("state", "TX"),
+                                location.get("zip_code", ""),
+                                location.get("latitude"),
+                                location.get("longitude")
+                            )
+                        )
+                        
+                        if self.db_type == 'sqlite':
+                            location_id = cursor.lastrowid
+                        else:
+                            cursor.execute("SELECT lastval()")
+                            location_id = cursor.fetchone()[0]
+                
+                # Check if auction already exists
+                cursor.execute(
+                    """
+                    SELECT auction_id FROM auctions
+                    WHERE source_id = ? AND external_id = ?
+                    """,
+                    (
+                        auction["source_id"],
+                        auction.get("external_id", "")
+                    )
+                )
+                result = cursor.fetchone()
+                
+                if result:
+                    auction_id = result[0]
+                    
+                    # Update existing auction
+                    cursor.execute(
+                        """
+                        UPDATE auctions
+                        SET title = ?, description = ?, start_date = ?, end_date = ?,
+                            current_price = ?, starting_price = ?, location_id = ?,
+                            category_id = ?, url = ?, status = ?, updated_at = CURRENT_TIMESTAMP
+                        WHERE auction_id = ?
+                        """,
+                        (
+                            auction["title"],
+                            auction.get("description", ""),
+                            auction.get("start_date"),
+                            auction["end_date"],
+                            auction.get("current_price"),
+                            auction.get("starting_price"),
+                            location_id,
+                            auction.get("category_id"),
+                            auction["url"],
+                            auction.get("status", "active"),
+                            auction_id
+                        )
+                    )
+                else:
+                    # Insert new auction
+                    cursor.execute(
+                        """
+                        INSERT INTO auctions (
+                            source_id, external_id, title, description, start_date,
+                            end_date, current_price, starting_price, location_id,
+                            category_id, url, status
+                        )
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (
+                            auction["source_id"],
+                            auction.get("external_id", ""),
+                            auction["title"],
+                            auction.get("description", ""),
+                            auction.get("start_date"),
+                            auction["end_date"],
+                            auction.get("current_price"),
+                            auction.get("starting_price"),
+                            location_id,
+                            auction.get("category_id"),
+                            auction["url"],
+                            auction.get("status", "active")
+                        )
+                    )
+                    
+                    if self.db_type == 'sqlite':
+                        auction_id = cursor.lastrowid
+                    else:
+                        cursor.execute("SELECT lastval()")
+                        auction_id = cursor.fetchone()[0]
+                    
+                    imported_count += 1
+                
+                # Import images
+                if "images" in auction:
+                    for image in auction["images"]:
+                        cursor.execute(
+                            """
+                            INSERT INTO auction_images (auction_id, image_url, is_primary)
+                            VALUES (?, ?, ?)
+                            """,
+                            (
+                                auction_id,
+                                image["url"],
+                                image.get("is_primary", False)
+                            )
+                        )
+                
+                # Import details
+                if "details" in auction:
+                    for key, value in auction["details"].items():
+                        cursor.execute(
+                            """
+                            INSERT INTO auction_details (auction_id, key, value)
+                            VALUES (?, ?, ?)
+                            """,
+                            (
+                                auction_id,
+                                key,
+                                str(value)
+                            )
+                        )
+            
+            conn.commit()
+            logger.info(f"Imported {imported_count} new auctions")
+            return imported_count
+            
+        except (sqlite3.Error, psycopg2.Error, json.JSONDecodeError) as e:
+            logger.error(f"Error importing data: {e}")
+            if conn:
+                conn.rollback()
+            return 0
+        finally:
+            self.close()

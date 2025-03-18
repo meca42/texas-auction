@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 """
 Run script for Texas Auction Database Web Application
 
@@ -11,6 +9,10 @@ import sys
 import logging
 from datetime import datetime
 from flask import Flask, render_template, request, jsonify, redirect, url_for
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Add the parent directory to the path so we can import the modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -198,4 +200,5 @@ def update_zip_code():
 if __name__ == '__main__':
     # Run the Flask application
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=True)
+    debug = os.environ.get('DEBUG', 'False').lower() == 'true'
+    app.run(host='0.0.0.0', port=port, debug=debug)

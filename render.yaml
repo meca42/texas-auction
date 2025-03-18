@@ -1,0 +1,67 @@
+# Render Configuration for Texas Auction
+
+This file contains instructions for deploying the Texas Auction application on Render.
+
+## Web Service Configuration
+
+1. Create a new Web Service on Render
+2. Connect your GitHub repository
+3. Use the following settings:
+   - **Name**: texas-auction
+   - **Environment**: Python
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `gunicorn wsgi:app`
+   - **Plan**: Free (or select a paid plan for production use)
+
+## Environment Variables
+
+Add the following environment variables in the Render dashboard:
+
+- `DATABASE_URL`: Your PostgreSQL connection string (from Render PostgreSQL service)
+- `DEBUG`: Set to `False` for production
+- `PORT`: Leave empty (Render will set this automatically)
+- `SCRAPE_INTERVAL_DAYS`: `3` (or your preferred interval)
+
+## PostgreSQL Database Setup
+
+1. Create a new PostgreSQL database on Render
+2. After creation, copy the Internal Database URL
+3. Use this URL as the `DATABASE_URL` environment variable for your Web Service
+
+## Initial Database Setup
+
+After deployment, you'll need to initialize the database:
+
+1. Go to your Web Service dashboard
+2. Open the Shell tab
+3. Run the following command to create tables:
+   ```
+   python -c "from database.database import AuctionDatabase; db = AuctionDatabase(); db.create_tables()"
+   ```
+4. Run the following command to import initial data:
+   ```
+   python import_data.py
+   ```
+
+## Scheduler Setup
+
+For the scheduler to run every 3 days, you'll need to set up a separate Background Worker on Render:
+
+1. Create a new Background Worker
+2. Connect to the same GitHub repository
+3. Use the following settings:
+   - **Name**: texas-auction-scheduler
+   - **Environment**: Python
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `python scheduler.py`
+   - **Plan**: Free (or select a paid plan for production use)
+4. Add the same environment variables as the Web Service
+
+## Troubleshooting
+
+If you encounter issues:
+
+1. Check the Render logs for error messages
+2. Verify that the PostgreSQL connection string is correct
+3. Ensure all required environment variables are set
+4. Check that the database tables were created successfully
