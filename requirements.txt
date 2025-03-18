@@ -1,2 +1,9 @@
-flask
+flask 
+beautifulsoup4 
+requests 
+selenium 
+webdriver-manager 
+pandas 
+geopy 
+schedule 
 gunicorn
