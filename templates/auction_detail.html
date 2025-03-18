@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ auction.title }} - Texas Auction Database</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .auction-image {
+            max-height: 400px;
+            object-fit: contain;
+        }
+        .thumbnail {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        .thumbnail.active {
+            border-color: #0d6efd;
+        }
+        .ending-soon {
+            background-color: #ffecb3;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">Texas Auction Database</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/auctions">Ending Soon</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/auctions/nearby">Nearby Auctions</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Home</a></li>
+                <li class="breadcrumb-item"><a href="/auctions">Auctions</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ auction.title }}</li>
+            </ol>
+        </nav>
+
+        <div class="card mb-4 {% if auction.end_date and auction.end_date|string < (now|default('2025-03-25T00:00:00'))|string %}ending-soon{% endif %}">
+            <div class="card-header">
+                <h1 class="card-title">{{ auction.title }}</h1>
+                <p class="text-muted mb-0">Source: {{ auction.source_name }}</p>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        {% if auction.images and auction.images|length > 0 %}
+                            <div class="text-center mb-3">
+                                <img id="main-image" src="{{ auction.images[0] }}" class="img-fluid auction-image" alt="{{ auction.title }}">
+                            </div>
+                            {% if auction.images|length > 1 %}
+                                <div class="d-flex flex-wrap justify-content-center">
+                                    {% for image in auction.images %}
+                                        <div class="m-1">
+                                            <img src="{{ image }}" class="thumbnail {% if loop.index0 == 0 %}active{% endif %}" 
+                                                 alt="Thumbnail {{ loop.index }}" onclick="changeImage('{{ image }}', this)">
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="text-center mb-3">
+                                <div class="bg-light d-flex align-items-center justify-content-center" style="height: 400px;">
+                                    <span class="text-muted">No Image Available</span>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card mb-3">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0">Auction Details</h5>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush">
+                                    {% if auction.current_price %}
+                                        <li class="list-group-item">
+                                            <strong>Current Price:</strong> ${{ auction.current_price }}
+                                        </li>
+                                    {% endif %}
+                                    {% if auction.start_date %}
+                                        <li class="list-group-item">
+                                            <strong>Start Date:</strong> {{ auction.start_date|replace('T', ' ')|replace('Z', '') }}
+                                        </li>
+                                    {% endif %}
+                                    {% if auction.end_date %}
+                                        <li class="list-group-item">
+                                            <strong>End Date:</strong> {{ auction.end_date|replace('T', ' ')|replace('Z', '') }}
+                                        </li>
+                                    {% endif %}
+                                    {% if auction.city %}
+                                        <li class="list-group-item">
+                                            <strong>Location:</strong> {{ auction.city }}, {{ auction.state }} {% if auction.zip_code %}{{ auction.zip_code }}{% endif %}
+                                        </li>
+                                    {% endif %}
+                                    {% if auction.category_name %}
+                                        <li class="list-group-item">
+                                            <strong>Category:</strong> {{ auction.category_name|title }}
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <a href="{{ auction.url }}" target="_blank" class="btn btn-primary btn-lg">
+                                Visit Original Auction
+                            </a>
+                            <a href="/auctions" class="btn btn-outline-secondary">
+                                Back to Auctions
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0">Description</h5>
+                            </div>
+                            <div class="card-body">
+                                <p>{{ auction.description }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-dark text-white mt-5 py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Texas Auction Database</h5>
+                    <p>A comprehensive database of public auctions in Texas.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p>Data updates every 3 days</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function changeImage(src, thumbnail) {
+            document.getElementById('main-image').src = src;
+            
+            // Remove active class from all thumbnails
+            const thumbnails = document.querySelectorAll('.thumbnail');
+            thumbnails.forEach(thumb => {
+                thumb.classList.remove('active');
+            });
+            
+            // Add active class to clicked thumbnail
+            thumbnail.classList.add('active');
+        }
+    </script>
+</body>
+</html>

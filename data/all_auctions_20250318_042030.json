@@ -1,0 +1,311 @@
+{
+  "scrape_time": "2025-03-18T04:20:30.000Z",
+  "auction_count": 15,
+  "auctions": [
+    {
+      "auction_id": "ps_1001",
+      "external_id": "3726794",
+      "title": "Lot 638RL - Forklift Mitsubishi/CAT, M30D - Non Working",
+      "description": "Lot 638RL - Forklift Mitsubishi/CAT, M30D - Non Working",
+      "url": "https://www.publicsurplus.com/sms/auction/view?auc=3726794",
+      "source_id": "public_surplus",
+      "source_name": "Public Surplus - Texas Facilities Commission",
+      "current_price": 51.00,
+      "end_date": "2025-03-19T08:00:00.000Z",
+      "location": {
+        "city": "Austin",
+        "state": "TX",
+        "zip_code": null,
+        "latitude": 30.2672,
+        "longitude": -97.7431
+      },
+      "category": "equipment",
+      "images": ["https://www.publicsurplus.com/images/auction/3726794_1.jpg"]
+    },
+    {
+      "auction_id": "ps_1002",
+      "external_id": "3721023",
+      "title": "Lot 247 2017 Ford Explorer - 1FM5K8AT9HGE42443",
+      "description": "Lot 247 2017 Ford Explorer - 1FM5K8AT9HGE42443",
+      "url": "https://www.publicsurplus.com/sms/auction/view?auc=3721023",
+      "source_id": "public_surplus",
+      "source_name": "Public Surplus - Texas Facilities Commission",
+      "current_price": 331.00,
+      "end_date": "2025-03-21T20:00:00.000Z",
+      "location": {
+        "city": "Austin",
+        "state": "TX",
+        "zip_code": null,
+        "latitude": 30.2672,
+        "longitude": -97.7431
+      },
+      "category": "vehicles",
+      "images": ["https://www.publicsurplus.com/images/auction/3721023_1.jpg"]
+    },
+    {
+      "auction_id": "ps_1003",
+      "external_id": "3721025",
+      "title": "Lot 248 2016 Chevy Tahoe - 1GNLCDEC9GR412638",
+      "description": "Lot 248 2016 Chevy Tahoe - 1GNLCDEC9GR412638",
+      "url": "https://www.publicsurplus.com/sms/auction/view?auc=3721025",
+      "source_id": "public_surplus",
+      "source_name": "Public Surplus - Texas Facilities Commission",
+      "current_price": 1625.00,
+      "end_date": "2025-03-21T20:00:00.000Z",
+      "location": {
+        "city": "Austin",
+        "state": "TX",
+        "zip_code": null,
+        "latitude": 30.2672,
+        "longitude": -97.7431
+      },
+      "category": "vehicles",
+      "images": ["https://www.publicsurplus.com/images/auction/3721025_1.jpg"]
+    },
+    {
+      "auction_id": "gs_1001",
+      "external_id": "gs_1001",
+      "title": "Lakeside Towing & Austin Police Department Online Auction",
+      "description": "2012 Freightliner Cascadia, 2012 WaMo Semi Car Hauler, 2016 Big Tex Tandem Axle Trailer, 2016 Toyota Camry, 2015 Chevy Silverado Crew Cab 4x4, 2012 GMC Yukon",
+      "url": "https://www.txauction.com/auctions/detail/lakeside-towing-austin-police-department-online-auction",
+      "source_id": "gaston_sheehan",
+      "source_name": "Gaston and Sheehan Auctioneers",
+      "current_price": null,
+      "start_date": "2025-03-11T17:00:00.000Z",
+      "end_date": "2025-03-19T15:00:00.000Z",
+      "location": {
+        "city": "Austin",
+        "state": "TX",
+        "zip_code": null,
+        "latitude": 30.2672,
+        "longitude": -97.7431
+      },
+      "category": "vehicles",
+      "images": ["https://www.txauction.com/images/auctions/lakeside-towing-1.jpg"]
+    },
+    {
+      "auction_id": "gs_1002",
+      "external_id": "gs_1002",
+      "title": "Reliant Towing Online Vehicle Auction",
+      "description": "1967 Plymouth Duster, 2019 Hyundai Elantra, 2018 Nissan Rogue, 2016 Dodge Journey, 2015 Landrover, 2010 Chevy Camaro Convertible, Ford F150s...",
+      "url": "https://www.txauction.com/auctions/detail/reliant-towing-online-vehicle-auction",
+      "source_id": "gaston_sheehan",
+      "source_name": "Gaston and Sheehan Auctioneers",
+      "current_price": null,
+      "start_date": "2025-03-11T19:00:00.000Z",
+      "end_date": "2025-03-19T16:00:00.000Z",
+      "location": {
+        "city": "Houston",
+        "state": "TX",
+        "zip_code": null,
+        "latitude": 29.7604,
+        "longitude": -95.3698
+      },
+      "category": "vehicles",
+      "images": ["https://www.txauction.com/images/auctions/reliant-towing-1.jpg"]
+    },
+    {
+      "auction_id": "gs_1003",
+      "external_id": "gs_1003",
+      "title": "EZ Tow Online Vehicle Auction (Oak Hill Ln)",
+      "description": "2019 Chevy Malibu, 2019 & 2018 Nissan Altima, 2018 BMW 535D, 2002 Nissan Frontier Pickup",
+      "url": "https://www.txauction.com/auctions/detail/ez-tow-online-vehicle-auction",
+      "source_id": "gaston_sheehan",
+      "source_name": "Gaston and Sheehan Auctioneers",
+      "current_price": null,
+      "start_date": "2025-03-12T17:00:00.000Z",
+      "end_date": "2025-03-19T17:00:00.000Z",
+      "location": {
+        "city": "Dallas",
+        "state": "TX",
+        "zip_code": null,
+        "latitude": 32.7767,
+        "longitude": -96.7970
+      },
+      "category": "vehicles",
+      "images": ["https://www.txauction.com/images/auctions/ez-tow-1.jpg"]
+    },
+    {
+      "auction_id": "gd_1001",
+      "external_id": "gd_1001",
+      "title": "2018 Ford F-150 XLT Crew Cab Pickup",
+      "description": "2018 Ford F-150 XLT Crew Cab Pickup with 78,245 miles. 4x4, 5.0L V8 engine, automatic transmission. Vehicle runs and drives. Minor body damage on rear bumper.",
+      "url": "https://www.govdeals.com/index.cfm?fa=Main.Item&itemid=123456",
+      "source_id": "govdeals",
+      "source_name": "GovDeals - Texas",
+      "current_price": 12500.00,
+      "end_date": "2025-03-20T14:00:00.000Z",
+      "location": {
+        "city": "San Antonio",
+        "state": "TX",
+        "zip_code": "78205",
+        "latitude": 29.4252,
+        "longitude": -98.4946
+      },
+      "category": "vehicles",
+      "images": ["https://www.govdeals.com/photos/TX/F150-1.jpg"]
+    },
+    {
+      "auction_id": "gd_1002",
+      "external_id": "gd_1002",
+      "title": "John Deere 5085E Utility Tractor",
+      "description": "John Deere 5085E Utility Tractor with 1,245 hours. 85 HP diesel engine, 4WD, 12F/12R PowrReverser transmission. Includes loader attachment. Good working condition.",
+      "url": "https://www.govdeals.com/index.cfm?fa=Main.Item&itemid=123457",
+      "source_id": "govdeals",
+      "source_name": "GovDeals - Texas",
+      "current_price": 22750.00,
+      "end_date": "2025-03-22T15:30:00.000Z",
+      "location": {
+        "city": "Lubbock",
+        "state": "TX",
+        "zip_code": "79401",
+        "latitude": 33.5779,
+        "longitude": -101.8552
+      },
+      "category": "equipment",
+      "images": ["https://www.govdeals.com/photos/TX/JD-Tractor-1.jpg"]
+    },
+    {
+      "auction_id": "ps_1004",
+      "external_id": "3721028",
+      "title": "Lot 249 2019 Chevy Tahoe - 1GNLCDEC4KR241306",
+      "description": "Lot 249 2019 Chevy Tahoe - 1GNLCDEC4KR241306",
+      "url": "https://www.publicsurplus.com/sms/auction/view?auc=3721028",
+      "source_id": "public_surplus",
+      "source_name": "Public Surplus - Texas Facilities Commission",
+      "current_price": 1025.00,
+      "end_date": "2025-03-21T20:00:00.000Z",
+      "location": {
+        "city": "Austin",
+        "state": "TX",
+        "zip_code": null,
+        "latitude": 30.2672,
+        "longitude": -97.7431
+      },
+      "category": "vehicles",
+      "images": ["https://www.publicsurplus.com/images/auction/3721028_1.jpg"]
+    },
+    {
+      "auction_id": "gs_1004",
+      "external_id": "gs_1004",
+      "title": "City of Austin Fleet Online Auction",
+      "description": "Freightliner FL70 & M2106 Boom Trucks, 2016 Dodge Ram 4500 Dually, 2016 & 2012 BMW R1200 Motorcycles, ATVs, Toyota Diesel Forklift",
+      "url": "https://www.txauction.com/auctions/detail/city-of-austin-fleet-online-auction",
+      "source_id": "gaston_sheehan",
+      "source_name": "Gaston and Sheehan Auctioneers",
+      "current_price": null,
+      "start_date": "2025-03-14T20:00:00.000Z",
+      "end_date": "2025-03-21T17:00:00.000Z",
+      "location": {
+        "city": "Austin",
+        "state": "TX",
+        "zip_code": null,
+        "latitude": 30.2672,
+        "longitude": -97.7431
+      },
+      "category": "vehicles",
+      "images": ["https://www.txauction.com/images/auctions/city-austin-fleet-1.jpg"]
+    },
+    {
+      "auction_id": "gd_1003",
+      "external_id": "gd_1003",
+      "title": "Dell Latitude 5420 Laptops (Lot of 10)",
+      "description": "Lot of 10 Dell Latitude 5420 laptops. Intel Core i5 processors, 8GB RAM, 256GB SSD. Windows 10 Pro. All units have been wiped and tested. Minor cosmetic wear.",
+      "url": "https://www.govdeals.com/index.cfm?fa=Main.Item&itemid=123458",
+      "source_id": "govdeals",
+      "source_name": "GovDeals - Texas",
+      "current_price": 2100.00,
+      "end_date": "2025-03-21T18:00:00.000Z",
+      "location": {
+        "city": "Austin",
+        "state": "TX",
+        "zip_code": "78701",
+        "latitude": 30.2672,
+        "longitude": -97.7431
+      },
+      "category": "electronics",
+      "images": ["https://www.govdeals.com/photos/TX/Dell-Laptops-1.jpg"]
+    },
+    {
+      "auction_id": "gs_1005",
+      "external_id": "gs_1005",
+      "title": "U.S. Marshals Service Electronics Auction",
+      "description": "Apple iPads, AirPods, iPhones, Virtual Reality Goggles, Beats...",
+      "url": "https://www.txauction.com/auctions/detail/us-marshals-service-electronics-auction",
+      "source_id": "gaston_sheehan",
+      "source_name": "Gaston and Sheehan Auctioneers",
+      "current_price": null,
+      "start_date": "2025-03-05T18:00:00.000Z",
+      "end_date": "2025-03-27T15:00:00.000Z",
+      "location": {
+        "city": "San Antonio",
+        "state": "TX",
+        "zip_code": null,
+        "latitude": 29.4252,
+        "longitude": -98.4946
+      },
+      "category": "electronics",
+      "images": ["https://www.txauction.com/images/auctions/us-marshals-electronics-1.jpg"]
+    },
+    {
+      "auction_id": "gd_1004",
+      "external_id": "gd_1004",
+      "title": "Commercial Office Furniture Package",
+      "description": "Complete office furniture package including 12 workstations, 4 executive desks, 20 office chairs, 3 conference tables, filing cabinets, and more. Good condition, sold as a lot.",
+      "url": "https://www.govdeals.com/index.cfm?fa=Main.Item&itemid=123459",
+      "source_id": "govdeals",
+      "source_name": "GovDeals - Texas",
+      "current_price": 3500.00,
+      "end_date": "2025-03-25T16:00:00.000Z",
+      "location": {
+        "city": "Houston",
+        "state": "TX",
+        "zip_code": "77002",
+        "latitude": 29.7604,
+        "longitude": -95.3698
+      },
+      "category": "furniture",
+      "images": ["https://www.govdeals.com/photos/TX/Office-Furniture-1.jpg"]
+    },
+    {
+      "auction_id": "ps_1005",
+      "external_id": "3721031",
+      "title": "Lot 250 2016 Chevy Tahoe - 1GNLCDEC5GR416041",
+      "description": "Lot 250 2016 Chevy Tahoe - 1GNLCDEC5GR416041",
+      "url": "https://www.publicsurplus.com/sms/auction/view?auc=3721031",
+      "source_id": "public_surplus",
+      "source_name": "Public Surplus - Texas Facilities Commission",
+      "current_price": 1525.00,
+      "end_date": "2025-03-21T20:00:00.000Z",
+      "location": {
+        "city": "Austin",
+        "state": "TX",
+        "zip_code": null,
+        "latitude": 30.2672,
+        "longitude": -97.7431
+      },
+      "category": "vehicles",
+      "images": ["https://www.publicsurplus.com/images/auction/3721031_1.jpg"]
+    },
+    {
+      "auction_id": "gd_1005",
+      "external_id": "gd_1005",
+      "title": "2.5 Acre Land Parcel - Undeveloped",
+      "description": "2.5 acre undeveloped land parcel. Rectangular lot, mostly flat with some trees. Zoned for residential use. Utilities available at road. No easements or encumbrances.",
+      "url": "https://www.govdeals.com/index.cfm?fa=Main.Item&itemid=123460",
+      "source_id": "govdeals",
+      "source_name": "GovDeals - Texas",
+      "current_price": 75000.00,
+      "end_date": "2025-03-28T19:00:00.000Z",
+      "location": {
+        "city": "New Braunfels",
+        "state": "TX",
+        "zip_code": "78130",
+        "latitude": 29.7030,
+        "longitude": -98.1244
+      },
+      "category": "real_estate",
+      "images": ["https://www.govdeals.com/photos/TX/Land-Parcel-1.jpg"]
+    }
+  ]
+}

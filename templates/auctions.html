@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Texas Auctions - {{ sort_by|title }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .auction-card {
+            height: 100%;
+            transition: transform 0.3s;
+        }
+        .auction-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .auction-image {
+            height: 200px;
+            object-fit: cover;
+        }
+        .ending-soon {
+            background-color: #ffecb3;
+        }
+        .distance-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">Texas Auction Database</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if sort_by == 'end_time' %}active{% endif %}" href="/auctions">Ending Soon</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if sort_by == 'proximity' %}active{% endif %}" href="/auctions/nearby">Nearby Auctions</a>
+                    </li>
+                </ul>
+                <form class="d-flex" action="/update-zip-code" method="POST">
+                    <input class="form-control me-2" type="text" name="zip_code" placeholder="ZIP Code" value="{{ zip_code|default('78232') }}">
+                    <input class="form-control me-2" type="number" name="max_distance" placeholder="Max Distance (miles)" value="{{ max_distance|default(100) }}">
+                    <button class="btn btn-light" type="submit">Update</button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        {% if sort_by == 'end_time' %}
+            <h1 class="mb-4">Auctions Ending Soon</h1>
+            <p class="lead">Showing auctions sorted by end date, with the soonest ending auctions first.</p>
+        {% elif sort_by == 'proximity' %}
+            <h1 class="mb-4">Nearby Auctions</h1>
+            <p class="lead">Showing auctions closest to ZIP code {{ zip_code|default('78232') }} (within {{ max_distance|default(100) }} miles).</p>
+        {% endif %}
+
+        <div class="row">
+            {% if auctions %}
+                {% for auction in auctions %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card auction-card {% if auction.end_date and auction.end_date|string < (now|default('2025-03-25T00:00:00'))|string %}ending-soon{% endif %}">
+                            {% if sort_by == 'proximity' and auction.distance %}
+                                <div class="distance-badge">{{ auction.distance }} miles</div>
+                            {% endif %}
+                            {% if auction.images and auction.images|length > 0 %}
+                                <img src="{{ auction.images[0] }}" class="card-img-top auction-image" alt="{{ auction.title }}">
+                            {% else %}
+                                <div class="card-img-top auction-image bg-light d-flex align-items-center justify-content-center">
+                                    <span class="text-muted">No Image Available</span>
+                                </div>
+                            {% endif %}
+                            <div class="card-body">
+                                <h5 class="card-title">{{ auction.title }}</h5>
+                                <p class="card-text">
+                                    <small class="text-muted">{{ auction.source_name }}</small>
+                                </p>
+                                <p class="card-text">
+                                    {% if auction.current_price %}
+                                        <strong>Current Price:</strong> ${{ auction.current_price }}
+                                    {% endif %}
+                                </p>
+                                <p class="card-text">
+                                    {% if auction.end_date %}
+                                        <strong>Ends:</strong> {{ auction.end_date|replace('T', ' ')|replace('Z', '') }}
+                                    {% endif %}
+                                </p>
+                                <p class="card-text">
+                                    {% if auction.city %}
+                                        <strong>Location:</strong> {{ auction.city }}, {{ auction.state }}
+                                    {% endif %}
+                                </p>
+                                <a href="/auction/{{ auction.auction_id }}" class="btn btn-primary">View Details</a>
+                                <a href="{{ auction.url }}" target="_blank" class="btn btn-outline-secondary">Visit Source</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        No auctions found. Please try adjusting your search criteria.
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Pagination -->
+        <nav aria-label="Auction pagination" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if page > 1 %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page - 1 }}{% if zip_code %}&zip_code={{ zip_code }}{% endif %}{% if max_distance %}&max_distance={{ max_distance }}{% endif %}">Previous</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Previous</span>
+                    </li>
+                {% endif %}
+                
+                <li class="page-item active">
+                    <span class="page-link">{{ page }}</span>
+                </li>
+                
+                {% if auctions and auctions|length == 20 %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page + 1 }}{% if zip_code %}&zip_code={{ zip_code }}{% endif %}{% if max_distance %}&max_distance={{ max_distance }}{% endif %}">Next</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Next</span>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+
+    <footer class="bg-dark text-white mt-5 py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Texas Auction Database</h5>
+                    <p>A comprehensive database of public auctions in Texas.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p>Data updates every 3 days</p>
+                    <p>Current ZIP Code: {{ zip_code|default('78232') }}</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
