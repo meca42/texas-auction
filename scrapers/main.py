@@ -12,10 +12,10 @@ from datetime import datetime
 import time
 
 # Import all scrapers
-from base_scraper import BaseScraper
-from public_surplus_scraper import PublicSurplusScraper
-from gaston_sheehan_scraper import GastonSheehanScraper
-from govdeals_scraper import GovDealsScraper
+from .base_scraper import BaseScraper
+from .public_surplus_scraper import PublicSurplusScraper
+from .gaston_sheehan_scraper import GastonSheehanScraper
+from .govdeals_scraper import GovDealsScraper
 
 # Configure logging
 logging.basicConfig(
