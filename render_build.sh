@@ -1,20 +1,12 @@
 #!/bin/bash
-# Install Chrome for Selenium in Render environment
 
-# Create a directory for Chrome
-mkdir -p /opt/render/project/chrome
+# Empty build script for Render deployment
+# Since we're using requests/BeautifulSoup in headless mode, we don't need Chrome
 
-# Download and install Chrome
-cd /opt/render/project/chrome
-wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-apt-get update
-apt-get install -y ./google-chrome-stable_current_amd64.deb
+echo "Starting build process..."
+echo "Using headless mode with requests/BeautifulSoup instead of Selenium/Chrome"
+echo "No Chrome installation needed"
+echo "Build process completed successfully"
 
-# Set Chrome path for the application
-export CHROME_PATH=/opt/render/project/chrome/google-chrome-stable
-
-# Create a symlink to make it easier to find
-ln -s /usr/bin/google-chrome-stable /usr/bin/chrome
-
-# Print Chrome version to verify installation
-google-chrome-stable --version
+# Exit with success code
+exit 0
