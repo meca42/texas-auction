@@ -1,10 +1,7 @@
-"""
-Base Scraper Module for Texas Auction Database
-
+""" Base Scraper Module for Texas Auction Database
 This module provides a base class for all auction scrapers to inherit from,
 ensuring consistent data collection and processing across different sources.
 """
-
 import os
 import json
 import logging
@@ -27,7 +24,6 @@ class BaseScraper(ABC):
     def __init__(self, source_name, source_url):
         """
         Initialize the base scraper
-        
         Args:
             source_name (str): Name of the auction source
             source_url (str): URL of the auction source
@@ -45,9 +41,7 @@ class BaseScraper(ABC):
     def scrape(self):
         """
         Main method to scrape auction data
-        
         This method must be implemented by all subclasses
-        
         Returns:
             list: List of auction items as dictionaries
         """
@@ -56,11 +50,9 @@ class BaseScraper(ABC):
     def save_data(self, auctions, filename=None):
         """
         Save scraped auction data to JSON file
-        
         Args:
             auctions (list): List of auction items as dictionaries
             filename (str, optional): Custom filename. Defaults to None.
-        
         Returns:
             str: Path to the saved file
         """
@@ -88,10 +80,8 @@ class BaseScraper(ABC):
     def normalize_date(self, date_str):
         """
         Normalize date string to ISO format
-        
         Args:
             date_str (str): Date string in various formats
-            
         Returns:
             str: ISO formatted date string or None if parsing fails
         """
@@ -121,10 +111,8 @@ class BaseScraper(ABC):
     def extract_location(self, text):
         """
         Extract location information from text
-        
         Args:
             text (str): Text containing location information
-            
         Returns:
             dict: Dictionary with city, state, zip_code if found
         """
@@ -132,7 +120,7 @@ class BaseScraper(ABC):
         
         # Look for Texas cities
         texas_cities = [
-            "Austin", "Houston", "Dallas", "San Antonio", "Fort Worth", 
+            "Austin", "Houston", "Dallas", "San Antonio", "Fort Worth",
             "El Paso", "Arlington", "Corpus Christi", "Plano", "Lubbock",
             "Irving", "Laredo", "Garland", "Frisco", "McKinney", "Amarillo"
         ]
@@ -153,10 +141,8 @@ class BaseScraper(ABC):
     def clean_price(self, price_str):
         """
         Clean price string to float
-        
         Args:
             price_str (str): Price string (e.g., "$1,234.56")
-            
         Returns:
             float: Cleaned price as float or None if parsing fails
         """
