@@ -17,7 +17,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 
-from base_scraper import BaseScraper
+from .base_scraper import BaseScraper
 
 class PublicSurplusScraper(BaseScraper):
     """Scraper for Public Surplus website"""
