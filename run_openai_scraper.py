@@ -2,7 +2,7 @@
 Script to run the OpenAI-powered auction scraper
 """
 import logging
-from scrapers.openai_scraper import OpenAIAuctionScraper
+from scrapers/openai_scraper import OpenAIAuctionScraper
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
