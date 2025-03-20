@@ -55,12 +55,14 @@ class OpenAIAuctionScraper:
             {
                 "name": "GovDeals - Texas",
                 "source_id": "govdeals",
-                "base_url": "https://www.govdeals.com/index.cfm?fa=Main.AdvSearchResultsNew&searchPg=Classic&inv_num=&category=00&kWord=&kWordSelect=2&sortBy=ad&agency=4703&state=&country=&locID=&timing=bySimple&locationType=state&timeType=&timingWithin=1&rowCount=10&Surplus=0&Seized=0&Reutilization=0&term=TX&fromPrice=0&toPrice=0",
-                "source_url": "https://www.govdeals.com",
+                "base_url": "https://www.allsurplus.com/search?isAdvSearch=1&timing=bySimple&timeType=atauction&ps=120&locationType=miles&zipcode=78232&miles=250&milesKilo=miles&showMap=false&sf=auctionclose&so=asc",
+                "source_url": "https://www.allsurplus.com",
                 "type": "govdeals",
                 "pages": [
-                    "https://www.govdeals.com/index.cfm?fa=Main.AdvSearchResultsNew&searchPg=Classic&inv_num=&category=00&kWord=&kWordSelect=2&sortBy=ad&agency=4703&state=&country=&locID=&timing=bySimple&locationType=state&timeType=&timingWithin=1&rowCount=10&Surplus=0&Seized=0&Reutilization=0&term=TX&fromPrice=0&toPrice=0",
-                    "https://www.govdeals.com/index.cfm?fa=Main.AdvSearchResultsNew&searchPg=Classic&inv_num=&category=00&kWord=&kWordSelect=2&sortBy=ad&agency=4703&state=&country=&locID=&timing=bySimple&locationType=state&timeType=&timingWithin=1&rowCount=10&Surplus=0&Seized=0&Reutilization=0&term=TX&fromPrice=0&toPrice=0&page=2"
+                    "https://www.allsurplus.com/search?isAdvSearch=1&timing=bySimple&timeType=atauction&ps=120&locationType=miles&zipcode=78232&miles=250&milesKilo=miles&showMap=false&sf=auctionclose&so=asc",
+                    "https://www.allsurplus.com/search/filters?isAdvSearch=1&timing=bySimple&timeType=atauction&ps=120&locationType=miles&zipcode=78232&miles=250&milesKilo=miles&showMap=false&sf=auctionclose&so=asc&pn=2"
+                    "https://www.allsurplus.com/search/filters?isAdvSearch=1&timing=bySimple&timeType=atauction&ps=120&locationType=miles&zipcode=78232&miles=250&milesKilo=miles&showMap=false&sf=auctionclose&so=asc&pn=3"
+                    "https://www.allsurplus.com/search/filters?isAdvSearch=1&timing=bySimple&timeType=atauction&ps=120&locationType=miles&zipcode=78232&miles=250&milesKilo=miles&showMap=false&sf=auctionclose&so=asc&pn=4"
                 ]
             },
             {
