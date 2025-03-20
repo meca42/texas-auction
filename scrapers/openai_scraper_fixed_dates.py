@@ -66,12 +66,14 @@ class OpenAIAuctionScraper:
             {
                 "name": "Public Surplus - Texas Facilities Commission",
                 "source_id": "public_surplus",
-                "base_url": "https://www.publicsurplus.com/sms/browse/cataucs?catid=4&orgid=13539",
+                "base_url": "https://www.publicsurplus.com/sms/all,tx/browse/cataucs?catid=4",
                 "source_url": "https://www.publicsurplus.com",
                 "type": "public_surplus",
                 "pages": [
-                    "https://www.publicsurplus.com/sms/browse/cataucs?catid=4&orgid=13539",
-                    "https://www.publicsurplus.com/sms/browse/cataucs?catid=4&orgid=13539&page=2"
+                    "https://www.publicsurplus.com/sms/all,tx/browse/cataucs?catid=4",
+                    "https://www.publicsurplus.com/sms/all,tx/browse/cataucs?slth=y&catid=4&page=1&sortBy=timeLeft&sortDesc=N&showaucpct="
+                    "https://www.publicsurplus.com/sms/all,tx/browse/cataucs?slth=y&catid=4&page=2&sortBy=timeLeft&sortDesc=N&showaucpct="
+                    "https://www.publicsurplus.com/sms/all,tx/browse/cataucs?slth=y&catid=4&page=3&sortBy=timeLeft&sortDesc=N&showaucpct="
                 ]
             },
             {
